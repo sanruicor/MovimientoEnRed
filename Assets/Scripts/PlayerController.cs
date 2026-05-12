@@ -9,7 +9,8 @@ public class PlayerController : NetworkBehaviour
 
     private PlayerInputActions m_Input;
     private Rigidbody m_Rb;
-    private bool m_IsGrounded;
+    private bool IsGrounded() =>
+        Physics.Raycast(transform.position, Vector3.down, 1.1f);
 
     public override void OnNetworkSpawn()
     {
@@ -39,7 +40,9 @@ public class PlayerController : NetworkBehaviour
         Vector3 move = new Vector3(moveInput.x, 0f, moveInput.y) * moveSpeed;
         m_Rb.linearVelocity = new Vector3(move.x, m_Rb.linearVelocity.y, move.z);
 
-        if (jump && m_IsGrounded)
+        if (jump && IsGrounded())
+        {
             m_Rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+        }
     }
 }
