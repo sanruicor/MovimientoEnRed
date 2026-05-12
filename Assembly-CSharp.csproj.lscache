@@ -51,7 +51,10 @@ TemporaryDependencyNodeTargetIdentifier=netstandard2.1
 
 [sourceFiles]
 Assets/
- Scripts/NetworkManagerUI.cs
+ PlayerInputActions.cs
+ Scripts/
+  NetworkManagerUI.cs
+  PlayerController.cs
  TutorialInfo/Scripts/Readme.cs
 Temp/obj/Assembly-CSharp/.NETStandard,Version=v2.1.AssemblyAttributes.cs
 
