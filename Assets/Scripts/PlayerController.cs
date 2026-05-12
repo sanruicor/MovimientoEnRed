@@ -6,6 +6,7 @@ public class PlayerController : NetworkBehaviour
 {
     private float moveSpeed = 5f;
     private float jumpForce = 6f;
+    private float panelLimit = 4.5f;
 
     private PlayerInputActions m_Input;
     private Rigidbody m_Rb;
@@ -44,5 +45,10 @@ public class PlayerController : NetworkBehaviour
         {
             m_Rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
         }
+
+        Vector3 position = transform.position;
+        position.x = Mathf.Clamp(position.x, -panelLimit, panelLimit);
+        position.z = Mathf.Clamp(position.z, -panelLimit, panelLimit);
+        transform.position = position;
     }
 }
