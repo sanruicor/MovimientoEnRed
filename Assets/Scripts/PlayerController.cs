@@ -1,22 +1,25 @@
 using Unity.Netcode;
+using Unity.Netcode.Components;
 using UnityEngine;
 
 
+[RequireComponent(typeof(Rigidbody))]
 public class PlayerController : NetworkBehaviour
 {
-    private float moveSpeed = 5f;
-    private float jumpForce = 6f;
+    private float moveSpeed  = 5f;
+    private float jumpForce  = 6f;
     private float panelLimit = 4.5f;
 
     private PlayerInputActions m_Input;
     private Rigidbody m_Rb;
+
     private bool IsGrounded() =>
         Physics.Raycast(transform.position, Vector3.down, 1.1f);
 
     public override void OnNetworkSpawn()
     {
         m_Rb = GetComponent<Rigidbody>();
-
+    
         if (!IsOwner)
         {
             enabled = false;
@@ -30,9 +33,25 @@ public class PlayerController : NetworkBehaviour
     private void Update()
     {
         Vector2 moveInput = m_Input.Player.Move.ReadValue<Vector2>();
-        bool jump = m_Input.Player.Jump.WasPressedThisFrame();
+        bool    jump      = m_Input.Player.Jump.WasPressedThisFrame();
 
-        SendInputServerRpc(moveInput, jump);
+        switch (AuthorityModeManager.Instance.CurrentMode.Value)
+        {
+            case AuthorityMode.ServerAuthority:
+                GetComponent<NetworkTransform>().AuthorityMode = NetworkTransform.AuthorityModes.Server;
+                SendInputServerRpc(moveInput, jump);
+                break;
+
+            case AuthorityMode.ServerAuthorityWithRewind:
+                GetComponent<NetworkTransform>().AuthorityMode = NetworkTransform.AuthorityModes.Server;
+                SendInputServerRpc(moveInput, jump);
+                break;
+
+            case AuthorityMode.ClientAuthority:
+                GetComponent<NetworkTransform>().AuthorityMode = NetworkTransform.AuthorityModes.Owner;
+                SendInputServerRpc(moveInput, jump);
+                break;
+        }
     }
 
     [Rpc(SendTo.Server)]
