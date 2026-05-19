@@ -1,7 +1,7 @@
 using Unity.Netcode;
-using UnityEngine;
 using Unity.Netcode.Components;
-using UnityEngine.InputSystem;
+using UnityEngine;
+
 
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerController : NetworkBehaviour
@@ -19,7 +19,7 @@ public class PlayerController : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         m_Rb = GetComponent<Rigidbody>();
-
+    
         if (!IsOwner)
         {
             enabled = false;
@@ -44,19 +44,18 @@ public class PlayerController : NetworkBehaviour
 
             case AuthorityMode.ServerAuthorityWithRewind:
                 GetComponent<NetworkTransform>().AuthorityMode = NetworkTransform.AuthorityModes.Server;
-                ApplyMovement(moveInput, jump);
                 SendInputServerRpc(moveInput, jump);
                 break;
 
             case AuthorityMode.ClientAuthority:
                 GetComponent<NetworkTransform>().AuthorityMode = NetworkTransform.AuthorityModes.Owner;
-                ApplyMovement(moveInput, jump);
                 SendInputServerRpc(moveInput, jump);
                 break;
         }
     }
 
-    private void ApplyMovement(Vector2 moveInput, bool jump)
+    [Rpc(SendTo.Server)]
+    private void SendInputServerRpc(Vector2 moveInput, bool jump)
     {
         Vector3 move = new Vector3(moveInput.x, 0f, moveInput.y) * moveSpeed;
         m_Rb.linearVelocity = new Vector3(move.x, m_Rb.linearVelocity.y, move.z);
@@ -65,25 +64,10 @@ public class PlayerController : NetworkBehaviour
         {
             m_Rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
         }
-    }
 
-    private void ClampPosition()
-    {
         Vector3 position = transform.position;
         position.x = Mathf.Clamp(position.x, -panelLimit, panelLimit);
         position.z = Mathf.Clamp(position.z, -panelLimit, panelLimit);
         transform.position = position;
-    }
-
-    [Rpc(SendTo.Server)]
-    private void SendInputServerRpc(Vector2 moveInput, bool jump)
-    {
-        ApplyMovement(moveInput, jump);
-        ClampPosition();
-    }
-
-    public override void OnNetworkDespawn()
-    {
-        m_Input?.Dispose();
     }
 }
